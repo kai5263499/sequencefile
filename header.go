@@ -110,36 +110,46 @@ func (r *Reader) ReadHeader() error {
 	return nil
 }
 
-func (w *Writer) WriteHeader() error {
+func (w *Writer) WriteHeader() (int, error) {
 	var err error
+	written := 0
+	totalWritten := 0
 
-	magic := make([]byte, 0, 4)
-	magic = append(magic, []byte("SEQ")...)
-	magic = append(magic, byte(w.Header.Version))
-	_, err = w.writer.Write(magic)
+	written, err = w.writer.Write([]byte("SEQ"))
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
+	totalWritten += written
 
-	_, err = w.writeString(w.Header.KeyClassName)
+	written, err = w.writer.Write([]byte{byte(w.Header.Version)})
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
+	totalWritten += written
 
-	_, err = w.writeString(w.Header.ValueClassName)
+	written, err = w.writeString(w.Header.KeyClassName)
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
+	totalWritten += written
 
-	_, err = w.writeBoolean(w.Header.Compression == RecordCompression)
+	written, err = w.writeString(w.Header.ValueClassName)
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
+	totalWritten += written
 
-	_, err = w.writeBoolean(w.Header.Compression == BlockCompression)
+	written, err = w.writeBoolean(w.Header.Compression == RecordCompression)
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
+	totalWritten += written
+
+	written, err = w.writeBoolean(w.Header.Compression == BlockCompression)
+	if err != nil {
+		return totalWritten, err
+	}
+	totalWritten += written
 
 	if w.Header.Compression != NoCompression {
 		switch w.Header.CompressionCodec {
@@ -149,23 +159,26 @@ func (w *Writer) WriteHeader() error {
 			w.Header.CompressionCodecClassName = SnappyClassName
 		}
 
-		_, err = w.writeString(w.Header.CompressionCodecClassName)
+		written, err = w.writeString(w.Header.CompressionCodecClassName)
 		if err != nil {
-			return err
+			return totalWritten, err
 		}
+		totalWritten += written
 	}
 
-	_, err = w.writeMetadata()
+	written, err = w.writeMetadata()
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
 
-	_, err = w.writeSyncMarker()
+	written, err = w.writeSyncMarker()
 	if err != nil {
-		return err
+		return totalWritten, err
 	}
 
-	return nil
+	w.Flush()
+
+	return totalWritten, nil
 }
 
 func (r *Reader) readMetadata() error {
@@ -212,7 +225,7 @@ func (w *Writer) writeMetadata() (int, error) {
 	}
 
 	keys := make([]string, 0, len(w.Header.Metadata))
-	for k, _ := range w.Header.Metadata {
+	for k := range w.Header.Metadata {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

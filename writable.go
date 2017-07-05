@@ -11,11 +11,17 @@ const (
 	TextClassName          = "org.apache.hadoop.io.Text"
 	IntWritableClassName   = "org.apache.hadoop.io.IntWritable"
 	LongWritableClassName  = "org.apache.hadoop.io.LongWritable"
+	NullWritableClassName  = "org.apache.hadoop.io.NullWritable"
 )
 
 // BytesWritable unwraps a hadoop BytesWritable and returns the actual bytes.
 func BytesWritable(b []byte) []byte {
-	return b[4:]
+	// Guard against NullWritable values
+	if len(b) > 4 {
+		return b[4:]
+	}
+
+	return []byte{}
 }
 
 func PutBytesWritable(raw []byte) []byte {

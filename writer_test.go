@@ -90,7 +90,7 @@ func TestWriteHeaderCompression(t *testing.T) {
 			writer.Header.Compression = spec.Compression
 			writer.Header.CompressionCodec = spec.CompressionCodec
 
-			err := writer.WriteHeader()
+			_, err := writer.WriteHeader()
 			assert.NoError(t, err, "it should write successfully")
 
 			r := NewReader(buf)
@@ -115,7 +115,7 @@ func TestWriteFullSequenceFiles(t *testing.T) {
 			writer.Header.CompressionCodec = spec.CompressionCodec
 			writer.Header.SyncMarker = []byte{0xe3, 0xb0, 0x6, 0x12, 0x67, 0xd4, 0x3b, 0xe0, 0xf3, 0xa, 0x78, 0x78, 0xcf, 0x69, 0x29, 0x6e}
 
-			err := writer.WriteHeader()
+			_, err := writer.WriteHeader()
 			assert.NoError(t, err, "Header should be written successfully")
 
 			err = writer.Append(PutBytesWritable([]byte("Alice")), PutBytesWritable([]byte("Practice")))

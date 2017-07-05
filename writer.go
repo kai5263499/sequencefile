@@ -18,6 +18,22 @@ type Writer struct {
 	blockWriter   blockWriter
 }
 
+//func OpenWriter(path string) (*Writer, error) {
+//	f, err := os.Create(path)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	w := NewWriter(bufio.NewWriter(f))
+//	n, err := w.WriteHeader()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return w, nil
+//
+//}
+
 func NewWriter(w io.Writer) *Writer {
 	header := Header{
 		Version:        SequenceFileVersion,
@@ -66,7 +82,7 @@ func (w *Writer) Flush() error {
 	}
 
 	// we need a bufio.Writer underneath this first, though
-	// return w.writer.Flush()
+	//return w.writer.Flush()
 	return nil
 }
 
@@ -185,3 +201,4 @@ func (w *Writer) compressGzip(raw []byte) ([]byte, error) {
 
 	return buf.Bytes(), nil
 }
+
